@@ -46,7 +46,7 @@
 			"type": "github",
 			"value": "https://github.com/waheya",
 			"label": "Github",
-			"order": 3
+			"order": 2
 		},
 		{
 			"id": "email",
@@ -54,6 +54,13 @@
 			"value": "yomelette007@gmail.com",
 			"label": "",
 			"order": 1
+		},
+		{
+			"id": "button-1765338095262",
+			"type": "x",
+			"value": "https://x.com/0xomelet",
+			"label": "",
+			"order": 3
 		}
 	],
 	"clockShowSeconds": false,
