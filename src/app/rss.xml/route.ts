@@ -4,7 +4,7 @@ import path from 'node:path'
 import siteContent from '@/config/site-content.json'
 import blogIndex from '@/../public/blogs/index.json'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.yysuni.com'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://omen-s-blog.vercel.app/'
 const FEED_PATH = '/rss.xml'
 const SITE_ORIGIN = SITE_URL.replace(/\/$/, '')
 const FEED_URL = `${SITE_ORIGIN}${FEED_PATH}`

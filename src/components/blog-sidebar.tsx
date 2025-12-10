@@ -25,7 +25,7 @@ export function BlogSidebar({ cover, summary, toc, slug }: BlogSidebarProps) {
 	const summaryInContent = siteContent.summaryInContent ?? false
 
 	return (
-		<div className='sticky flex w-[200px] shrink-0 flex-col items-start gap-4 self-start max-sm:hidden' style={{ top: 24 }}>
+		<div className='sticky flex w-[240px] shrink-0 flex-col items-start gap-4 self-start max-sm:hidden' style={{ top: 24 }}>
 			{cover && (
 				<motion.div
 					initial={{ opacity: 0, scale: 0.8 }}
