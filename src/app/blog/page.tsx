@@ -35,6 +35,7 @@ export default function BlogPage() {
 	const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set())
 	const [saving, setSaving] = useState(false)
 	const [displayMode, setDisplayMode] = useState<DisplayMode>('year')
+	const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set())
 
 	useEffect(() => {
 		if (!editMode) {
@@ -42,7 +43,41 @@ export default function BlogPage() {
 		}
 	}, [items, editMode])
 
-	const displayItems = editMode ? editableItems : items
+	// 提取所有唯一标签
+	const allTags = useMemo(() => {
+		const tagSet = new Set<string>()
+		items.forEach(item => {
+			(item.tags || []).forEach(tag => tagSet.add(tag))
+		})
+		return Array.from(tagSet).sort()
+	}, [items])
+
+	// 根据标签筛选
+	const baseItems = editMode ? editableItems : items
+	const displayItems = useMemo(() => {
+		if (selectedTags.size === 0) return baseItems
+		return baseItems.filter(item => 
+			(item.tags || []).some(tag => selectedTags.has(tag))
+		)
+	}, [baseItems, selectedTags])
+
+	// 切换标签选中状态
+	const toggleTag = useCallback((tag: string) => {
+		setSelectedTags(prev => {
+			const next = new Set(prev)
+			if (next.has(tag)) {
+				next.delete(tag)
+			} else {
+				next.add(tag)
+			}
+			return next
+		})
+	}, [])
+
+	// 清除标签筛选
+	const clearTagFilter = useCallback(() => {
+		setSelectedTags(new Set())
+	}, [])
 
 	const { groupedItems, groupKeys, getGroupLabel } = useMemo(() => {
 		const sorted = [...displayItems].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -128,10 +163,10 @@ export default function BlogPage() {
 		})
 	}, [])
 
-	// 全选所有文章
+	// 全选所有文章（基于当前筛选结果）
 	const handleSelectAll = useCallback(() => {
-		setSelectedSlugs(new Set(editableItems.map(item => item.slug)))
-	}, [editableItems])
+		setSelectedSlugs(new Set(displayItems.map(item => item.slug)))
+	}, [displayItems])
 
 	// 全选/取消全选某个时间维度分组
 	const handleSelectGroup = useCallback(
@@ -264,24 +299,66 @@ export default function BlogPage() {
 
 			<div className='flex flex-col items-center justify-center gap-6 px-6 pt-24 max-sm:pt-24'>
 				{items.length > 0 && (
-					<motion.div
-						initial={{ opacity: 0, scale: 0.6 }}
-						animate={{ opacity: 1, scale: 1 }}
-						className='card relative mx-auto flex items-center gap-1 rounded-xl p-1 max-sm:hidden'>
-						{(['day', 'week', 'month', 'year'] as DisplayMode[]).map(mode => (
-							<motion.button
-								key={mode}
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-								onClick={() => setDisplayMode(mode)}
-								className={cn(
-									'rounded-lg px-3 py-1.5 text-xs font-medium transition-all',
-									displayMode === mode ? 'bg-brand text-white shadow-sm' : 'text-secondary hover:text-brand hover:bg-white/60'
-								)}>
-								{mode === 'day' ? '日' : mode === 'week' ? '周' : mode === 'month' ? '月' : '年'}
-							</motion.button>
-						))}
-					</motion.div>
+					<div className='flex w-full max-w-[840px] items-start gap-3 max-sm:hidden'>
+						<motion.div
+							initial={{ opacity: 0, scale: 0.6 }}
+							animate={{ opacity: 1, scale: 1 }}
+							className='card relative flex shrink-0 items-center gap-1 rounded-xl p-2'>
+							{(['day', 'week', 'month', 'year'] as DisplayMode[]).map(mode => (
+								<motion.button
+									key={mode}
+									whileHover={{ scale: 1.05 }}
+									whileTap={{ scale: 0.95 }}
+									onClick={() => setDisplayMode(mode)}
+									className={cn(
+										'rounded-lg px-3 py-1.5 text-xs font-medium transition-all',
+										displayMode === mode ? 'bg-brand text-white shadow-sm' : 'text-secondary hover:text-brand hover:bg-white/60'
+									)}>
+									{mode === 'day' ? '日' : mode === 'week' ? '周' : mode === 'month' ? '月' : '年'}
+								</motion.button>
+							))}
+						</motion.div>
+
+						{allTags.length > 0 && (
+							<motion.div
+								initial={{ opacity: 0, scale: 0.6 }}
+								animate={{ opacity: 1, scale: 1 }}
+								transition={{ delay: 0.05 }}
+								className='card relative flex min-w-0 flex-1 flex-col gap-2 rounded-xl p-2'>
+								<div className='flex items-center gap-1 overflow-x-auto whitespace-nowrap scrollbar-none'>
+									<motion.button
+										whileHover={{ scale: 1.05 }}
+										whileTap={{ scale: 0.95 }}
+										onClick={clearTagFilter}
+										className={cn(
+											'rounded-lg px-3 py-1 text-xs font-medium transition-all',
+											selectedTags.size === 0 ? 'bg-brand text-white shadow-sm' : 'text-secondary hover:text-brand hover:bg-white/60'
+										)}>
+										全部
+									</motion.button>
+									{allTags.map(tag => (
+										<motion.button
+											key={tag}
+											whileHover={{ scale: 1.05 }}
+											whileTap={{ scale: 0.95 }}
+											onClick={() => toggleTag(tag)}
+											className={cn(
+												'rounded-lg px-3 py-1 text-xs font-medium transition-all',
+												selectedTags.has(tag) ? 'bg-brand text-white shadow-sm' : 'text-secondary hover:text-brand hover:bg-white/60'
+											)}>
+											#{tag}
+										</motion.button>
+									))}
+								</div>
+								{selectedTags.size > 0 && (
+									<div className='text-secondary text-sm'>
+										共筛选出 <span className='text-brand font-medium'>{displayItems.length}</span> 篇文章
+										{displayItems.length === 0 && '，试试其他标签？'}
+									</div>
+								)}
+							</motion.div>
+						)}
+					</div>
 				)}
 
 				{groupKeys.map((groupKey, index) => {
@@ -363,7 +440,19 @@ export default function BlogPage() {
 											</div>
 											<div className='flex flex-wrap items-center gap-2 max-sm:hidden'>
 												{(it.tags || []).map(t => (
-													<span key={t} className='text-secondary text-sm'>
+													<span
+														key={t}
+														onClick={e => {
+															if (editMode) return
+															e.preventDefault()
+															e.stopPropagation()
+															toggleTag(t)
+														}}
+														className={cn(
+															'text-sm transition-colors',
+															!editMode && 'cursor-pointer hover:text-brand',
+															selectedTags.has(t) ? 'text-brand font-medium' : 'text-secondary'
+														)}>
 														#{t}
 													</span>
 												))}
@@ -414,9 +503,9 @@ export default function BlogPage() {
 						<motion.button
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
-							onClick={selectedCount === editableItems.length ? handleDeselectAll : handleSelectAll}
+							onClick={selectedCount === displayItems.length ? handleDeselectAll : handleSelectAll}
 							className='rounded-xl border bg-white/60 px-4 py-2 text-sm transition-colors hover:bg-white/80'>
-							{selectedCount === editableItems.length ? '取消全选' : '全选'}
+							{selectedCount === displayItems.length ? '取消全选' : `全选${selectedTags.size > 0 ? '(筛选)' : ''}`}
 						</motion.button>
 						<motion.button
 							whileHover={{ scale: 1.05 }}

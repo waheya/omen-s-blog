@@ -1,6 +1,9 @@
 {
   "title": "12 Factor Agents：让 AI 智能体从 Demo 走向生产",
-  "tags": [],
+  "tags": [
+    "Agent"
+  ],
   "date": "2025-12-10",
-  "summary": ""
+  "summary": "",
+  "hidden": false
 }
